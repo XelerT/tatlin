@@ -1,0 +1,6 @@
+bold = 42;
+hair = 69;
+
+if (bold < hair && hair < 420) {
+    print bold;
+}

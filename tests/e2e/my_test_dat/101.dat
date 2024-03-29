@@ -1,0 +1,20 @@
+a = 1;
+a_ = 2;
+a__ = 3;
+
+if (a > 1)
+  print 0;
+else if (a > a_) {
+  print 1;
+}
+else {
+  i = 5;
+  while (i > 0) {
+    if (i > 2) {
+      print i;
+    }
+    i = i - 1;
+  }
+
+  print 2;
+}

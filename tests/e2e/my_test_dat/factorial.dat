@@ -1,0 +1,10 @@
+x = 10;
+
+res = 1;
+i = x;
+while (i > 1) {
+    res = res * i;
+    i = i - 1;
+}
+
+print res;

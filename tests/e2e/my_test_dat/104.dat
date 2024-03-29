@@ -1,0 +1,28 @@
+Im = 10;
+sick = 12;
+of = 14;
+all = 16;
+this = 18;
+
+world = 42;
+surrounding = 69;
+
+if (Im > world)
+    print 42;
+else {
+    if (Im < surrounding) {
+        if (Im != 10) {
+            Im = ?;
+            print Im;
+        } else {
+            max = 100;
+            if (Im < max) {
+                print 1;
+            } else {
+                Im = ?;
+                print max;
+            }
+        }
+    }
+}
+

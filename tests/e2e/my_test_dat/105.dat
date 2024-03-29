@@ -1,0 +1,8 @@
+ 
+foo = 44;
+
+while ((((foo > 0) && (foo != !?)) || (foo < 50)) && (foo != 42) && !(0)) {
+
+    foo = foo -2;
+    print foo;
+}
