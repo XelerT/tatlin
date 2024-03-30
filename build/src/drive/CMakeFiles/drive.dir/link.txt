@@ -1,2 +1,0 @@
-/usr/bin/ar qc libdrive.a CMakeFiles/drive.dir/drive.cpp.o
-/usr/bin/ranlib libdrive.a

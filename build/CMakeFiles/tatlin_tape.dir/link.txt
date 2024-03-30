@@ -1,1 +1,0 @@
-/usr/bin/c++ -g -lasan -fsanitize=address,leak CMakeFiles/tatlin_tape.dir/main.cpp.o -o tatlin_tape  src/drive/libdrive.a src/tape/libtape.a src/utils/libutils.a 
