@@ -1,7 +1,7 @@
 set(SRC_LIST
-        tokens
-        inode
-        frontend
+        drive
+        tape
+        utils
 )
 
 foreach(SRC ${SRC_LIST})

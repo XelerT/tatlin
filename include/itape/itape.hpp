@@ -4,15 +4,14 @@
 
 namespace tatlin_tape
 {
+        template <typename T>
         class itape_t
         {
                 public:
-                        template <typename T>
-                        virtual T read (size_t addr) const = 0;
-                        template <typename T>
+                        virtual void read (T *output, size_t addr, size_t n_elems = 1) = 0;
                         virtual void write (size_t addr, T &elem) = 0;
-                        virtual void dump  () const               = 0;
+                        // virtual void dump  () const               = 0;
 
-                        virtual ~tape_t () {}
+                        virtual ~itape_t () {}
         };
 }

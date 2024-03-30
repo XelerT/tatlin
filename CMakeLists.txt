@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.13.4)
-project(paracl)
+project(tatlin_tape)
 
 # Build flags
 include(cmake/build_flags.cmake)
@@ -8,23 +8,6 @@ include(cmake/build_flags.cmake)
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
         set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose Release or Debug" FORCE)
 endif()
-
-# Set Bison/Flex
-
-find_package(BISON REQUIRED)
-find_package(FLEX REQUIRED)
-
-flex_target(scanner
-    ./include/frontend/lexic.l
-    ${CMAKE_CURRENT_BINARY_DIR}/lexer.cpp
-)
-
-bison_target(parser
-    ./include/frontend/compiler.y
-    ${CMAKE_CURRENT_BINARY_DIR}/parser.cpp
-    COMPILE_FLAGS "--defines=${CMAKE_CURRENT_BINARY_DIR}/grammar.tab.hpp" )
-
-add_flex_bison_dependency(scanner parser ./src/inode/inode.cpp)
 
 # collect srcs
 

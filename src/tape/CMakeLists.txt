@@ -1,6 +1,6 @@
 set(SRCS
-        inode.cpp
+        tape.cpp
 )
 
-add_library(inode ${SRCS})
-target_include_directories(inode PRIVATE ${CMAKE_BINARY_DIR})
+add_library(tape ${SRCS})
+target_include_directories(tape PRIVATE ${CMAKE_BINARY_DIR})

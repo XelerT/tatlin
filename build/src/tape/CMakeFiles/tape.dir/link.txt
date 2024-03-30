@@ -1,0 +1,2 @@
+/usr/bin/ar qc libtape.a CMakeFiles/tape.dir/tape.cpp.o
+/usr/bin/ranlib libtape.a
