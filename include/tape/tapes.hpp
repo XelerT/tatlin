@@ -11,9 +11,10 @@ itape_t<T>* create_tape (const tape_cnfg_t &config, const std::string &file_name
 }
 
 template <typename T>
-itape_t<T>* create_tape (const tape_cnfg_t &config, const std::string &file_name, bool trunc)
+itape_t<T>* create_tape (const tape_cnfg_t &config, const std::string &file_name, 
+                         size_t size_, bool trunc)
 {
-        return new tape_t<T> {config, file_name, trunc};
+        return new tape_t<T> {config, file_name, size_, trunc};
 }
 
 template <typename T>

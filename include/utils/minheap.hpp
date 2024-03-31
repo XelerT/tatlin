@@ -23,20 +23,16 @@ class min_heap_t
                 }
 
                 void initial_heapify ()
-                { 
-                        if (nodes.size() < 2)
-                                return;
-
-                        for (int i = (nodes.size() - 1) / 2; i >= 0; --i) {
-                                std::cout << i << "\n";
+                {
+                        for (int i = (nodes.size() - 1) / 2; i >= 0; --i)
                                 heapify(i);
-                        }
                 }
 
                 size_t get_left_child_ind (size_t index)  { return 2 * index + 1; }
                 size_t get_right_child_ind (size_t index) { return 2 * index + 2; }
 
                 void push (min_heap_node_t<T> &&node) { nodes.push_back(node); }
+                void pop () { nodes.pop_back(); }
 
                 min_heap_node_t<T> get_min () const { return nodes[0]; }
 
@@ -61,10 +57,10 @@ inline void min_heap_t<T>::heapify (size_t root_index)
         size_t right = get_right_child_ind(root_index);
         size_t smallest = root_index;
 
-        if (left < nodes.size() && nodes[left].elem < nodes[root_index].elem)
+        if (left < nodes.size() && root_index < nodes.size() && nodes[left].elem < nodes[root_index].elem)
                 smallest = left;
 
-        if (right < nodes.size() && nodes[right].elem < nodes[smallest].elem)
+        if (right < nodes.size() && smallest < nodes.size() && nodes[right].elem < nodes[smallest].elem)
                 smallest = right;
 
         if (smallest != root_index) {

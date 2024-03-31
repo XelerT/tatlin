@@ -55,6 +55,9 @@ class drive_t
                                        std::unique_ptr<T[]> &tape_data_chunks);
                 void write_output_tape_no_tmps 
                 (uptr_itape_t &input_tape, std::unique_ptr<T[]> &tape_data_chunks);
+                 void read_sort_write_tmp 
+                (uptr_itape_t &input_tape, std::unique_ptr<T[]> &tape_data_chunks, size_t n_tape,
+                 size_t n_elems, size_t size);
 };
 
 //===================================================~~~DECLARATIONS~~~====================================================================
@@ -87,9 +90,10 @@ inline void drive_t<T>::merge_tmp_tapes_in_output ()
 
         for (size_t i = 0; i < tape_n_elems; i++) {
                 min_heap_node_t root = min_heap.get_min();
+                // std::cout << root.elem;
                 output->write_next(root.elem);
 
-                if (root.next_elem_index < chunk_n_elems) {
+                if (root.next_elem_index < tmp_tapes[root.arr_index]->get_size() / sizeof(T)) {
                         tmp_tapes[root.arr_index]->read_next(&root.elem);
                         root.next_elem_index++;
                 } else {
@@ -112,6 +116,7 @@ inline std::unique_ptr<T[]> drive_t<T>::create_chunks ()
         if (!chunk_size)
                 throw std::bad_alloc();
 
+        chunk_size /= 2;
         n_chunks = tape_size / chunk_size;
         if (tape_size > chunk_size * n_chunks)
                 ++n_chunks;
@@ -127,19 +132,33 @@ inline void drive_t<T>::create_tmp_tapes
 (uptr_itape_t &input_tape, std::unique_ptr<T[]> &tape_data_chunks)
 {
         std::filesystem::create_directory("tmp/");
-        for (size_t i = 0; i < n_chunks; i++) {
-                input_tape->read_next(tape_data_chunks.get(), chunk_n_elems);
-
-                std::sort(tape_data_chunks.get(), tape_data_chunks.get() + chunk_n_elems);
-                min_heap.push(min_heap_node_t {tape_data_chunks[0], i, 1});
-
-                std::string tmp_tape_name = "tmp/" + std::to_string(i) + ".tape";
-                shptr_itape_t tmp {create_tape<T>(config, tmp_tape_name, true)};
-
-                tmp->write(0, tape_data_chunks.get(), chunk_n_elems);
-                tmp_tapes.push_back(tmp);
+        size_t n_remaining_bytes = tape_size;
+        
+        for (size_t i = 0; i < n_chunks - 1; i++) {
+                read_sort_write_tmp(input_tape, tape_data_chunks, i, chunk_n_elems, chunk_size);
+                n_remaining_bytes -= chunk_size;
         }
+        read_sort_write_tmp(input_tape, tape_data_chunks, n_chunks - 1, n_remaining_bytes / sizeof(T), n_remaining_bytes);
+
         min_heap.initial_heapify();
+}
+
+template <typename T>
+inline void drive_t<T>::read_sort_write_tmp
+(uptr_itape_t &input_tape, std::unique_ptr<T[]> &tape_data_chunks, size_t n_tape,
+ size_t n_elems, size_t size)
+{
+        input_tape->read_next(tape_data_chunks.get(), n_elems);
+
+        std::sort(tape_data_chunks.get(), tape_data_chunks.get() + n_elems);
+        min_heap.push(min_heap_node_t {tape_data_chunks[0], n_tape, 1});
+
+        std::string tmp_tape_name = "tmp/" + std::to_string(n_tape) + ".tape";
+        shptr_itape_t tmp {create_tape<T>(config, tmp_tape_name, size, true)};
+
+        tmp->write(0, tape_data_chunks.get(), n_elems);
+        tmp_tapes.push_back(tmp);
+        tmp->move_head2(0);
 }
 
 template <typename T>

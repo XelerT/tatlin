@@ -11,7 +11,7 @@
 
 namespace tatlin_tape
 {
-        
+
 template <typename T>
 class tape_t final : public itape_t<T>
 {  
@@ -45,9 +45,11 @@ class tape_t final : public itape_t<T>
                         tape.open(file_name, std::fstream::in | std::fstream::out);
                         size = std::filesystem::file_size(file_name);                        
                 }
-                tape_t (const tape_cnfg_t &config_, const std::string &file_name, bool trunc):
+                tape_t (const tape_cnfg_t &config_, const std::string &file_name, 
+                        size_t size_, bool trunc):
                         config(config_),
-                        name(file_name)
+                        name(file_name),
+                        size(size_)
                 {
                         if (!std::filesystem::exists(file_name)) {
                                 tape.open(file_name, std::fstream::out);
@@ -60,7 +62,6 @@ class tape_t final : public itape_t<T>
                         else
                                 tape.open(file_name, std::fstream::in  | 
                                                      std::fstream::out);
-                        size = std::filesystem::file_size(file_name);                        
                 }
 
                 tape_t (const tape_t &tape_):
@@ -79,13 +80,13 @@ class tape_t final : public itape_t<T>
                 // void dump () const override;
 
                 std::string get_name () override { return name; }
-                size_t get_size () override { return size; }
+                size_t get_size () const override { return size; }
+                void move_head2 (size_t addr) override;
 
                 ~tape_t () { rewind(); tape.close(); }
 
         private:
                 void rewind () { std::this_thread::sleep_for(config.get_rewind_dur()); tape.seekg(0); }
-                void move_head2 (size_t addr);
                 void check_addr (size_t addr);
 };
 
@@ -142,15 +143,6 @@ inline void tape_t<T>::write (size_t addr, const T *elem, size_t n_elems)
         tape.write(reinterpret_cast<const char*>(elem), sizeof(T) * n_elems);
 }
 
-//---------------------------------------------------~~~~~~Private~~~~~~--------------------------------------------------------------------
-
-template <typename T>
-inline void tape_t<T>::check_addr (size_t addr)
-{
-        if (addr > size)
-                throw std::out_of_range("Tape is shorter than that address.");
-}
-
 template <typename T>
 inline void tape_t<T>::move_head2 (size_t addr)
 {
@@ -159,6 +151,15 @@ inline void tape_t<T>::move_head2 (size_t addr)
         head_cur_addr = addr;
 
         tape.seekg(head_cur_addr);
+}
+
+//---------------------------------------------------~~~~~~Private~~~~~~--------------------------------------------------------------------
+
+template <typename T>
+inline void tape_t<T>::check_addr (size_t addr)
+{
+        if (addr > size)
+                throw std::out_of_range("Tape is shorter than that address.");
 }
 
 }
