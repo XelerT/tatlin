@@ -89,6 +89,10 @@ class drive_t
                 size_t n_chunks   = 0;
                 size_t tape_size  = 0;
 
+                size_t tape_n_elems = 0;
+                size_t chunk_n_elems = 0;
+
+
                 std::vector<tape_t<T>> tmp_tapes {};
 
         public:
@@ -107,28 +111,41 @@ class drive_t
                         tape_size = input_tape.get_size();
                         chunk_size = tape_size;
 
-                        std::unique_ptr<T> tape_data_chunks {new(std::nothrow) T[chunk_size * settings_t::max_n_chunks_needed]};
-                        while (!tape_data_chunks) {
+                        std::unique_ptr<T[]> tape_data_chunks { new(std::nothrow) T[chunk_size * settings_t::max_n_chunks_needed] };
+                        while (!tape_data_chunks && chunk_size) {
                                 chunk_size /= 2;
                                 tape_data_chunks.reset(new(std::nothrow) T[chunk_size * settings_t::max_n_chunks_needed]);
                         }
 
-                        std::cout << tape_size << " / " << chunk_size << std::endl; 
+                        // std::cout << tape_size << " / " << chunk_size << std::endl; 
+                        if (!chunk_size)
+                                throw std::bad_alloc();
                         n_chunks = tape_size / chunk_size;
                         if (tape_size > chunk_size * n_chunks)
                                 ++n_chunks;
+                        
+                        tape_n_elems  = tape_size / sizeof(T);
+                        chunk_n_elems = chunk_size / sizeof(T);
 
-                        for (size_t i = 0; i < n_chunks; i++) {
-                                input_tape.read(tape_data_chunks.get(), chunk_size);
-                                std::sort(tape_data_chunks.get(), tape_data_chunks.get() + chunk_size);
+                        if (n_chunks != 1) {
+                                for (size_t i = 0; i < n_chunks; i++) {
+                                        input_tape.read_next(tape_data_chunks.get(), chunk_n_elems);
 
-                                min_heap.push(min_heap_node_t {*tape_data_chunks, i, 1});
+                                        std::sort(tape_data_chunks.get(), tape_data_chunks.get() + chunk_n_elems);
+                                        min_heap.push(min_heap_node_t {tape_data_chunks[0], i, 1});
 
-                                std::cout << "here\n";
-                                tape_t<T> temp {config, "tmp/" + std::to_string(i) + ".tape"};
-                                std::cout << "here\n";                                
-                                temp.write(0, tape_data_chunks.get(), chunk_size);
-                                tmp_tapes.push_back(temp);
+                                        tape_t<T> temp {config, "tmp/" + std::to_string(i) + ".tape"};
+                                        temp.write(0, tape_data_chunks.get(), chunk_size);
+                                        tmp_tapes.push_back(temp);
+                                }
+                        } else {
+                                input_tape.read_next(tape_data_chunks.get(), chunk_n_elems);
+
+                                std::sort(tape_data_chunks.get(), tape_data_chunks.get() + chunk_n_elems);
+
+                                tape_t<T> output {config, output_file_path};
+                                output.write(0, tape_data_chunks.get(), chunk_n_elems);
+                                return;
                         }
 
                         merge_tmp_tapes(tape_data_chunks.get());
@@ -136,14 +153,9 @@ class drive_t
 
                 void merge_tmp_tapes (T* tape_data_chunks)
                 {
-                        // for (size_t i = 0; i < n_chunks; i++) {
-                        //         // get_data(input_file_path, tape_data_chunk);
-                        //         // write_on_tape("tmp/" + std::to_string(i) + ".tape", tape_data_chunk);
-                        // }
-
                         tape_t<T> output {config, output_file_path};
 
-                        for (size_t i = 0; i < tape_size * n_chunks; i++) {
+                        for (size_t i = 0; i < tape_n_elems * n_chunks; i++) {
                                 min_heap_node_t root = min_heap.get_min();
                                 output.write_next(root.elem);
 

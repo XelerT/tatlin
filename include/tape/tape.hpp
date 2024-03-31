@@ -38,8 +38,8 @@ class tape_t final : public itape_t<T>
 
         private:
                 tape_cnfg_t config {};
+                std::string name {};
                 std::fstream tape {};
-                std::string tape_name {};
                 size_t head_cur_addr = 0;
                 size_t size = 0;
 
@@ -49,35 +49,36 @@ class tape_t final : public itape_t<T>
                         duration_t rewind_dur, duration_t shift_lat, 
                         const std::string &file_name):
                         config(read_lat, write_lat, rewind_dur, shift_lat),
-                        tape_name(file_name)
+                        name(file_name)
                 {
                         // tape.rdbuf()->pubsetbuf(0, 0);
-                        tape.open(file_name);
+                        tape.open(file_name, std::fstream::in | std::fstream::out);
 
                         size = fs::file_size(file_name);
                 }
                 tape_t (const tape_cnfg_t &config_, const std::string &file_name):
                         config(config_),
-                        tape_name(file_name)
+                        name(file_name)
                 {
                         // tape.rdbuf()->pubsetbuf(0, 0);
-                        std::cout << "herererere  " << file_name << "\n";
-                        tape.open(file_name, std::fstream::in | std::fstream::out | std::fstream::trunc);
-                        std::cout << "herererere\n";
+                        if (!fs::exists(file_name)) {
+                                tape.open(file_name, std::fstream::out);
+                                tape.close();
+                        }
+                        tape.open(file_name, std::fstream::in | std::fstream::out);
                         size = fs::file_size(file_name);
-                        std::cout << "herererere\n";
                 }
                 tape_t (const tape_t &tape_):
                         config(tape_.config),
-                        tape_name(tape_.tape_name),
+                        name(tape_.name),
                         size(tape_.size)
                 {
                         // tape.rdbuf()->pubsetbuf(0, 0);
-                        tape.open(tape_name, std::fstream::in | std::fstream::out | std::fstream::trunc);
+                        tape.open(name, std::fstream::in | std::fstream::out);
                 }
                 // tape_t (const tape_cnfg_t &config_, const std::string &file_name):
                 //         config(config_),
-                //         tape_name(file_name)
+                //         name(file_name)
                 // {
                 //         // tape.rdbuf()->pubsetbuf(0, 0);
                 //         tape.open(file_name);
@@ -90,7 +91,7 @@ class tape_t final : public itape_t<T>
                 void write (size_t addr, const T *elems, size_t n_elems);
                 // void dump () const override;
 
-                std::string get_tape_name () { return tape_name; }
+                std::string get_name () { return name; }
                 size_t get_size () { return size; }
 
                 ~tape_t () { rewind(); tape.close(); }
@@ -110,7 +111,7 @@ inline void tape_t<T>::read_next (T *output, size_t n_elems)
         std::this_thread::sleep_for(config.get_read_latency());
         
         tape.read(reinterpret_cast<char*>(output), sizeof(T) * n_elems);
-        move_head2(head_cur_addr + 1);
+        move_head2(head_cur_addr + sizeof(T) * n_elems);
 }
 
 template <typename T>
@@ -121,8 +122,12 @@ inline void tape_t<T>::read (T *output, size_t addr, size_t n_elems)
         
         move_head2(addr);
         std::this_thread::sleep_for(config.get_read_latency());
-        
+        std::cout << name << "\n";
+        // tape.flush();
+        // tape.seekp(-1, std::ios_base::cur);
         tape.read(reinterpret_cast<char*>(output), sizeof(T) * n_elems);
+        // tape.flush();
+        std::cout << +*reinterpret_cast<char*>(output) << std::endl;
 }
 
 template <typename T>
