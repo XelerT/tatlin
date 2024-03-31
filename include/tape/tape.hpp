@@ -11,9 +11,7 @@
 
 namespace tatlin_tape
 {
-
-namespace fs = std::filesystem;   
-
+        
 template <typename T>
 class tape_t final : public itape_t<T>
 {  
@@ -34,24 +32,24 @@ class tape_t final : public itape_t<T>
                 {
                         tape.open(file_name, std::fstream::in | std::fstream::out);
 
-                        size = fs::file_size(file_name);
+                        size = std::filesystem::file_size(file_name);
                 }
                 tape_t (const tape_cnfg_t &config_, const std::string &file_name):
                         config(config_),
                         name(file_name)
                 {
-                        if (!fs::exists(file_name)) {
+                        if (!std::filesystem::exists(file_name)) {
                                 tape.open(file_name, std::fstream::out);
                                 tape.close();
                         }
                         tape.open(file_name, std::fstream::in | std::fstream::out);
-                        size = fs::file_size(file_name);                        
+                        size = std::filesystem::file_size(file_name);                        
                 }
                 tape_t (const tape_cnfg_t &config_, const std::string &file_name, bool trunc):
                         config(config_),
                         name(file_name)
                 {
-                        if (!fs::exists(file_name)) {
+                        if (!std::filesystem::exists(file_name)) {
                                 tape.open(file_name, std::fstream::out);
                                 tape.close();
                         }
@@ -62,7 +60,7 @@ class tape_t final : public itape_t<T>
                         else
                                 tape.open(file_name, std::fstream::in  | 
                                                      std::fstream::out);
-                        size = fs::file_size(file_name);                        
+                        size = std::filesystem::file_size(file_name);                        
                 }
 
                 tape_t (const tape_t &tape_):
@@ -88,6 +86,7 @@ class tape_t final : public itape_t<T>
         private:
                 void rewind () { std::this_thread::sleep_for(config.get_rewind_dur()); tape.seekg(0); }
                 void move_head2 (size_t addr);
+                void check_addr (size_t addr);
 };
 
 //===================================================~~~DECLARATIONS~~~====================================================================
@@ -106,25 +105,16 @@ inline void tape_t<T>::read_next (T *output, size_t n_elems)
 template <typename T>
 inline void tape_t<T>::read (T *output, size_t addr, size_t n_elems)
 {
-        if (addr > size)
-                throw std::out_of_range("Tape is shorter than that address.");
+        check_addr(addr);
         
         move_head2(addr);
         std::this_thread::sleep_for(config.get_read_latency());
-        std::cout << name << "\n";
-        // tape.flush();
-        // tape.seekp(-1, std::ios_base::cur);
         tape.read(reinterpret_cast<char*>(output), sizeof(T) * n_elems);
-        // tape.flush();
-        std::cout << +*reinterpret_cast<char*>(output) << std::endl;
 }
 
 template <typename T>
 inline void tape_t<T>::write_next (const T &elem)
-{
-        // if (addr > data.max_size())
-        //         throw std::out_of_range();
-        
+{        
         std::this_thread::sleep_for(config.get_write_latency());
         
         tape.write(reinterpret_cast<const char*>(&elem), sizeof(T));
@@ -133,8 +123,7 @@ inline void tape_t<T>::write_next (const T &elem)
 template <typename T>
 inline void tape_t<T>::write (size_t addr, T &elem)
 {
-        // if (addr > data.max_size())
-        //         throw std::out_of_range();
+        check_addr(addr);
         
         move_head2(addr);
         std::this_thread::sleep_for(config.get_write_latency());
@@ -145,6 +134,8 @@ inline void tape_t<T>::write (size_t addr, T &elem)
 template <typename T>
 inline void tape_t<T>::write (size_t addr, const T *elem, size_t n_elems)
 {
+        check_addr(addr);
+
         move_head2(addr);
         std::this_thread::sleep_for(config.get_write_latency());
         
@@ -152,6 +143,13 @@ inline void tape_t<T>::write (size_t addr, const T *elem, size_t n_elems)
 }
 
 //---------------------------------------------------~~~~~~Private~~~~~~--------------------------------------------------------------------
+
+template <typename T>
+inline void tape_t<T>::check_addr (size_t addr)
+{
+        if (addr > size)
+                throw std::out_of_range("Tape is shorter than that address.");
+}
 
 template <typename T>
 inline void tape_t<T>::move_head2 (size_t addr)
