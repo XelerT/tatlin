@@ -1,164 +1,151 @@
 import subprocess
 import argparse
+import time
+import random
 import os
-import sys
-from   subprocess import Popen, PIPE, STDOUT
-
-# -----------------------------------------------------------------------------------------
+from subprocess import Popen, PIPE, STDOUT
+from pathlib import Path
 
 class TERMINAL_COLORS:
         PURPLE    = '\033[95m'
         OKBLUE    = '\033[94m'
         OKCYAN    = '\033[96m'
         OKGREEN   = '\033[92m'
-        YELLOW    = '\033[33m'
-        BLUE      = '\033[36m'
-        GREEN     = '\033[32m'
-
         WARNING   = '\033[93m'
         ERROR     = '\033[91m'
-        RED       = '\033[91m'
         DEFAULT   = '\033[0m'
         BOLD      = '\033[1m'
         UNDERLINE = '\033[4m'
 
+class ERRORS:
+        ERROR = -1
+
+GEN_DATA_MAX = 0xFFFFFFF
 
 data_files_names = []
-ans_files_names  = []
+# log_file = open("tests_log.txt", "w")
 
-path2dir = os.path.dirname(os.path.abspath(__file__))
-path2dir_len = len(path2dir)
-
-def get_files_names(files_names, last_dir=str()):
-        dir_path = path2dir + last_dir
+def get_data_files_names():
+        dir_path = str(Path.cwd()) + "/../tests/e2e/data/"
         data_files_counter = 0
 
         for path in os.listdir(dir_path):
                 if os.path.isfile(os.path.join(dir_path, path)):
                         data_files_counter += 1
-                        files_names.append(os.path.join(dir_path, path))
+                        data_files_names.append(os.path.join(dir_path, path))
 
-# -----------------------------------------------------------------------------------------
 
-def check_output_data(n_test, stdout_data, correct_res, tested_prog_name, test_file_name):
-    try:
-        if stdout_data == correct_res:
-            print(TERMINAL_COLORS.GREEN                                                          + \
-                f"Test {n_test} PASSED (filename: ...{data_files_names[n_test][path2dir_len:]})" + \
-                # f"File {data_files_names[n_test]} " + \
-            TERMINAL_COLORS.DEFAULT
-            )
-            return True
+def check_output_data(n_test, stdout_data, exec_time, correct_output=str()):
+        if correct_output != str():
+                try:
+                        if stdout_data == correct_output:
+                                print(TERMINAL_COLORS.OKGREEN                    + \
+                                        f"Test {n_test:3} Passed. "              + \
+                                        f"File {data_files_names[n_test]} "      + \
+                                        f"Execution time: {exec_time:.03f} sec"  + \
+                                TERMINAL_COLORS.DEFAULT
+                                )
+                        else:
+                                print(TERMINAL_COLORS.ERROR                       + \
+                                        f"Test {n_test} NOT Passed. "             + \
+                                        f"File {data_files_names[n_test]}\n"      + \
+                                        f"Execution time: {exec_time:.03f} sec\n" + \
+                                        f"Output={stdout_data}\n"                 + \
+                                        f"\nRight={correct_output}\n"             + \
+                                TERMINAL_COLORS.DEFAULT
+                                )
+                except:
+                        print(TERMINAL_COLORS.WARNING                                 + \
+                                f"Test {n_test} has fallen. Output of program is:\n'" + \
+                                stdout_data + "'"                                     + \
+                        TERMINAL_COLORS.DEFAULT
+                        )
         else:
-            print(TERMINAL_COLORS.ERROR              + \
-                f"Test {n_test} IS FAILED:\n"        + \
-                f"Prog output   = {stdout_data}\n"   + \
-                f"Expected      = {correct_res}\n"   + \
-                f"File:         = {test_file_name}"  + \
-            TERMINAL_COLORS.DEFAULT
-            )
-            return False
-    except:
-        print(TERMINAL_COLORS.WARNING                   + \
-            f"Test {n_test} fall. Prog output:\n"       + \
-            stdout_data + "'"                           + \
-        TERMINAL_COLORS.DEFAULT
-        )
-        return False
+                try:
+                        print(TERMINAL_COLORS.OKBLUE                      + \
+                                f"Test {n_test} Runned. "                 + \
+                                f"File {data_files_names[n_test]}\n"      + \
+                                f"Execution time: {exec_time:.03f} sec\n" + \
+                                f"Output=\n{stdout_data}\n"                 + \
+                        TERMINAL_COLORS.DEFAULT
+                        )
+                except:
+                        print(TERMINAL_COLORS.WARNING                                 + \
+                                f"Test {n_test} has fallen. Output of program is:\n'" + \
+                                stdout_data + "'"                                     + \
+                        TERMINAL_COLORS.DEFAULT
+                        )
 
 
-def show_total_test_stat(n_test, passed_test, failed):
-    print('===========TOTAL==============')
-    print(TERMINAL_COLORS.OKBLUE                         + \
-            f"Total num of tests: {n_test + 1}\n"        + \
-            f"Num of passed:      {passed_test}"         + \
-    TERMINAL_COLORS.DEFAULT
-    )
-    if (len(failed)):
-        print('FAILED:')
-        for failed_test in failed:
-            print (TERMINAL_COLORS.ERROR    + \
-                   failed_test, "\n"        + \
-                   TERMINAL_COLORS.DEFAULT )
-    print('==============================')
-
-# -----------------------------------------------------------------------------------------
-
-def parse_test_data(test_case):
-    with open(test_case) as dat_file:
-        correct_res = 0
-        res_is_reached = False
-        data = ""
-        for item in dat_file:
-            data = item
-
-    start = data.find('(')
-    end   = data.find(')')
-
-    try:
-        correct_res = data[start + 1:end]
-        data = data[start + 1:end]
-    except:
-        correct_res = 0
-
-    correct_numbers = ''.join(c if c.isdigit() else ' ' for c in correct_res).split()
-    return correct_numbers
-
-# -----------------------------------------------------------------------------------------
-
-def run_test(tested_prog_name, test_case):
-    pipe = Popen([tested_prog_name, test_case], stdout = PIPE)
-
-    stdout_data = pipe.communicate()
-    string_data = stdout_data[0].decode()
-
-    # converted_output = string_data.split()
-    # converted_output = [int(n) for n in converted_output]
-
-    # return converted_output
-    return string_data
+def get_correct_output (n_triangles, data):
+        correct_output = data[n_triangles*3*3:]
+        return correct_output
 
 
-def get_data(file_name):
-    try:
+def parse_data_file (file_name):
         with open(file_name) as file:
-            return "\n".join([s for s in file.read().split("\n") if s])
-    except:
-        print(TERMINAL_COLORS.WARNING            + \
-                f"File {file_name} is broken.\n" + \
-            TERMINAL_COLORS.DEFAULT
-             )
-        return None 
+                try:
+                        n_nodes = int(next(file))
+                        return n_nodes
+                except:
+                        print(TERMINAL_COLORS.WARNING            + \
+                                f"File {file_name} is broken.\n" + \
+                                TERMINAL_COLORS.DEFAULT
+                             )                        
 
 
-def run_test_data(tested_prog_name):
-    passed_test = 0
-    n_test      = 0
-    failed = []
-    
-    print('————————————————————————START OF TESTS———————————————————————')
+def gen_data(file_name):
+        n_elems = parse_data_file(file_name)
 
-    for (n_test, file_name, ans_file_name) in zip(range(len(data_files_names)), data_files_names, ans_files_names):
-        # data = get_data(file_name)
-        ans = get_data(ans_file_name)
-        if (ans == "DO NOT RUN"):
-            continue
+        
 
-        prog_output = run_test(tested_prog_name, file_name)
-        prog_output = "\n".join([s for s in prog_output.split("\n") if s])
-        if (check_output_data(n_test, prog_output, ans, tested_prog_name, file_name)):
-            passed_test += 1
-        else:
-            failed.append(file_name)
+        return data
+        
 
-    print('————————————————————————END OF TESTS—————————————————————————\n\n')
-    show_total_test_stat(n_test, passed_test, failed)
+def run_e2e_test(app2run, input_data):
+        print(TERMINAL_COLORS.OKCYAN                    + \
+                        f"Run {app2run}."               + \
+                TERMINAL_COLORS.DEFAULT
+                )
+        pipe = Popen([app2run, "--mul=true"], stdout=PIPE, stdin=PIPE)
+        
+        data_str = str()
+        for data in input_data:
+                data_str += str(data) + " "
+
+        start_time  = time.time()
+        stdout_data = pipe.communicate(input=bytes(data_str, "UTF-8"))
+        exec_time   = time.time() - start_time
+
+        return stdout_data[0].decode(), exec_time
+        
+
+def check_app_output(n_test, data, output_data, exec_time, correct_output=str()):
+        # correct_str = ''.join(str(elem) for elem in correct_output)
+        check_output_data(n_test, output_data[:-1], exec_time)
 
 
-# -----------------------------------------------------------------------------------------
+def run_e2e_tests(app_name, app2_name=str()):
+        for (n_test, file_name) in zip(range(len(data_files_names)), data_files_names):
+                # data, correct_output = parse_data_file(file_name)
+                data = gen_data(file_name)
+
+                output_data, exec_time = run_e2e_test(app_name, data)
+                check_app_output(n_test, data, output_data, exec_time)
+                
+                # log_file.write(f"\nInput data:\n ")
+                # for dat in data:
+                #         log_file.write(f"{dat} ")
+                # log_file.write(f"\n Correct output:\n {correct_str} \n Output: \n {output_data[:-2]}\n\n")
+                
+                if (app2_name):
+                        output_data, exec_time = run_e2e_test(app2_name, data)
+                        check_app_output(n_test, data, correct_output, output_data, exec_time)
+                
 
 if __name__ == "__main__":
-    get_files_names(data_files_names, "/my_test_dat/")
-    get_files_names(ans_files_names, "/my_test_ans/")
+        get_data_files_names()
+        run_e2e_tests("./tatlin_tape")
 
-    run_test_data("./paracl")
+
+# log_file.close()

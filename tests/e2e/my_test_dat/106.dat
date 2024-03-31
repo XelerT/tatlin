@@ -1,6 +1,0 @@
-
-if (!(x = 6))
-    print 666;
-else {
-    print x;
-}

@@ -1,7 +1,0 @@
-int  = 5;
-float = int * int;
-
-if (int != float) {
-    print int;
-    print float;
-}

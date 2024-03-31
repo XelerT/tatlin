@@ -1,6 +1,0 @@
-{
-    x = 800;
-}
-print x;
-
-print k;

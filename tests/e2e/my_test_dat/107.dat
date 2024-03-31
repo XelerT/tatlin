@@ -1,5 +1,0 @@
-snd = 1;
-snd;
-if (snd) {
-    print snd;
-}
