@@ -42,7 +42,7 @@ class drive_t
                         input_file_path(input_file_path_), 
                         output_file_path(output_file_path_), config(config_) {}
                 drive_t (std::string &&input_file_path_, 
-                        std::string &&output_file_path_, tape_cnfg_t &config_):
+                         std::string &&output_file_path_, tape_cnfg_t &config_):
                         input_file_path(input_file_path_), 
                         output_file_path(output_file_path_), config(config_) {}
 
@@ -91,6 +91,7 @@ inline void drive_t<T>::merge_tmp_tapes_in_output ()
 
                 if (root.next_elem_index < chunk_n_elems) {
                         tmp_tapes[root.arr_index]->read_next(&root.elem);
+                        root.next_elem_index++;
                 } else {
                         root.elem = INT_MAX;
                 }
@@ -130,14 +131,15 @@ inline void drive_t<T>::create_tmp_tapes
                 input_tape->read_next(tape_data_chunks.get(), chunk_n_elems);
 
                 std::sort(tape_data_chunks.get(), tape_data_chunks.get() + chunk_n_elems);
-                std::cout << tape_data_chunks[0] << " ";
                 min_heap.push(min_heap_node_t {tape_data_chunks[0], i, 1});
 
-                shptr_itape_t temp {create_tape<T>(config, "tmp/" + std::to_string(i) + ".tape", true)};
+                std::string tmp_tape_name = "tmp/" + std::to_string(i) + ".tape";
+                shptr_itape_t tmp {create_tape<T>(config, tmp_tape_name, true)};
 
-                temp->write(0, tape_data_chunks.get(), chunk_n_elems);
-                tmp_tapes.push_back(temp);
+                tmp->write(0, tape_data_chunks.get(), chunk_n_elems);
+                tmp_tapes.push_back(tmp);
         }
+        min_heap.initial_heapify();
 }
 
 template <typename T>

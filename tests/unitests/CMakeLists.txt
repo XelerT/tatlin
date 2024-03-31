@@ -1,7 +1,5 @@
 set(SRCS
-        unitests/operators.cpp
-        unitests/if_oper.cpp
-        unitests/comparator.cpp
+        unitests/minheap.cpp
 
         PARENT_SCOPE
 )

@@ -24,8 +24,13 @@ class min_heap_t
 
                 void initial_heapify ()
                 { 
-                        for (size_t i = (nodes.size() - 1) / 2; i >= 0; --i)
+                        if (nodes.size() < 2)
+                                return;
+
+                        for (int i = (nodes.size() - 1) / 2; i >= 0; --i) {
+                                std::cout << i << "\n";
                                 heapify(i);
+                        }
                 }
 
                 size_t get_left_child_ind (size_t index)  { return 2 * index + 1; }
@@ -40,6 +45,7 @@ class min_heap_t
                         nodes[0] = node; 
                         heapify(0);
                 }
+
         private:
                 void heapify (size_t root_index);
 };
