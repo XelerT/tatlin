@@ -10,8 +10,8 @@ arguments_t parse_cmd_args (int n_args, const char **args)
 {
         po::options_description desc("Allowed options");
         desc.add_options()
-                ("help,h", "displays help info and exit")
-                ("clear", po::value<bool>(), "deletes temporary tapes (default value: false)")
+                ("help,h", "displays help info and exits")
+                ("clear",  "deletes temporary tapes")
                 ("conf",  po::value<std::string>(), "sets config file path (default value: ./conf.txt)")
                 ("output-file,o", po::value<std::string>(), "sets output file name (default value: ./output.tape)")
                 ("input-file", po::value<std::string> (), "sets input file path")
@@ -44,8 +44,8 @@ arguments_t parse_cmd_args (int n_args, const char **args)
         }
 
         if (var_map.count("conf"))  { parsed_args.conf_path = var_map["conf"].as<std::string>(); }
-        if (var_map.count("clear")) { parsed_args.clear     = var_map["clear"].as<bool>(); }
-        if (var_map.count("input-file")) { parsed_args.input_file_path = var_map["input-file"].as<std::string>(); }
+        if (var_map.count("clear")) { parsed_args.clear     = true; }
+        if (var_map.count("input-file"))  { parsed_args.input_file_path  = var_map["input-file"].as<std::string>(); }
         if (var_map.count("output-file")) { parsed_args.output_file_path = var_map["output-file"].as<std::string>(); }
 
         return parsed_args;

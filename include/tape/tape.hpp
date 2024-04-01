@@ -77,10 +77,9 @@ class tape_t final : public itape_t<T>
                 void write_next (const T *elems, size_t n_elems = 1) override;
                 void write (size_t addr, T &elem) override;
                 void write (size_t addr, const T *elems, size_t n_elems) override;
-                // void dump () const override;
 
-                std::string get_name () override { return name; }
-                size_t get_size () const override { return size; }
+                std::string get_name () noexcept override  { return name; }
+                size_t get_size () const noexcept override { return size; }
                 void move_head2 (size_t addr) override;
                 void rewind () { std::this_thread::sleep_for(config.get_rewind_dur()); tape.seekg(0); }
 

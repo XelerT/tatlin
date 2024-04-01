@@ -14,7 +14,7 @@ namespace tatlin_tape
 {
 
 template <typename T>
-class drive_t
+class manager_t
 {
         public:
                 using uptr_itape_t  = std::unique_ptr<itape_t<T>>;
@@ -35,16 +35,21 @@ class drive_t
                 size_t chunk_n_elems = 0;
 
                 std::vector<shptr_itape_t> tmp_tapes {};
+                bool delete_tmps = false;
 
         public:
-                drive_t (std::string &input_file_path_, 
-                        std::string &output_file_path_, tape_cnfg_t &config_):
+                manager_t (std::string &input_file_path_, 
+                           std::string &output_file_path_, tape_cnfg_t &config_,
+                           bool delete_tmps_ = false):
                         input_file_path(input_file_path_), 
-                        output_file_path(output_file_path_), config(config_) {}
-                drive_t (std::string &&input_file_path_, 
-                         std::string &&output_file_path_, tape_cnfg_t &config_):
+                        output_file_path(output_file_path_), 
+                        config(config_), delete_tmps(delete_tmps_) {}
+                manager_t (std::string &&input_file_path_, 
+                           std::string &&output_file_path_, tape_cnfg_t &config_,
+                           bool delete_tmps_ = false):
                         input_file_path(input_file_path_), 
-                        output_file_path(output_file_path_), config(config_) {}
+                        output_file_path(output_file_path_),
+                        config(config_), delete_tmps(delete_tmps_) {}
 
                 void copy_sort_tape ();
 
@@ -53,11 +58,13 @@ class drive_t
                 std::unique_ptr<T[]> create_chunks ();
                 void create_tmp_tapes (uptr_itape_t &input_tape, 
                                        std::unique_ptr<T[]> &tape_data_chunks);
-                void write_output_tape_no_tmps 
+                void write_output_tape 
                 (uptr_itape_t &input_tape, std::unique_ptr<T[]> &tape_data_chunks);
-                 void read_sort_write_tmp 
-                (uptr_itape_t &input_tape, std::unique_ptr<T[]> &tape_data_chunks, size_t n_tape,
-                 size_t n_elems, size_t size);
+                void read_sort_write_tmp 
+                (uptr_itape_t &input_tape, std::unique_ptr<T[]> &tape_data_chunks, 
+                 size_t n_tape, size_t n_elems, size_t size);
+
+                void delete_tmp_dir () { std::filesystem::remove_all("tmp/"); }
 };
 
 //===================================================~~~DECLARATIONS~~~====================================================================
@@ -65,39 +72,31 @@ class drive_t
 //---------------------------------------------------~~~~~~Public~~~~~~--------------------------------------------------------------------
 
 template <typename T>
-inline void drive_t<T>::copy_sort_tape ()
+inline void manager_t<T>::copy_sort_tape ()
 {
         uptr_itape_t input_tape {create_tape<T>(config, input_file_path)};
         tape_size = input_tape->get_size();
-        chunk_size = tape_size;
 
         auto tape_data_chunks = create_chunks();
-
         if (n_chunks != 1) {
                 create_tmp_tapes(input_tape, tape_data_chunks);
                 merge_tmp_tapes_in_output();
+                if (delete_tmps)
+                        delete_tmp_dir();
         } else {
-                write_output_tape_no_tmps(input_tape, tape_data_chunks);
+                write_output_tape(input_tape, tape_data_chunks);
         }
 }
 
 //---------------------------------------------------~~~~~~Private~~~~~~--------------------------------------------------------------------
 
 template <typename T>
-inline void drive_t<T>::merge_tmp_tapes_in_output ()
+inline void manager_t<T>::merge_tmp_tapes_in_output ()
 {
         uptr_itape_t output {create_tape<T>(config, output_file_path)};
-        std::vector<T> elems (chunk_size);
-        size_t n_loaded_elems = 0;
 
         for (size_t i = 0; i < tape_n_elems; i++) {
                 min_heap_node_t root = min_heap.get_min();
-                // elems[n_loaded_elems] = root.elem;
-                // n_loaded_elems++;
-                // if (n_loaded_elems == chunk_size) {
-                //         output->write_next(elems.data(), n_loaded_elems);
-                //         n_loaded_elems = 0;
-                // }
                 output->write_next(&root.elem);
 
                 if (root.next_elem_index < tmp_tapes[root.arr_index]->get_size() / sizeof(T)) {
@@ -108,12 +107,13 @@ inline void drive_t<T>::merge_tmp_tapes_in_output ()
                 }
                 min_heap.replace_min(root);
         }
-        output->write_next(elems.data(), n_loaded_elems);
 }
 
 template <typename T>
-inline std::unique_ptr<T[]> drive_t<T>::create_chunks ()
+inline std::unique_ptr<T[]> manager_t<T>::create_chunks ()
 {
+        chunk_size = tape_size;
+
         std::unique_ptr<T[]> tape_data_chunks { new(std::nothrow) T[chunk_size] };
         while (!tape_data_chunks && chunk_size) {
                 chunk_size /= 2;
@@ -133,7 +133,7 @@ inline std::unique_ptr<T[]> drive_t<T>::create_chunks ()
 }
 
 template <typename T>
-inline void drive_t<T>::create_tmp_tapes 
+inline void manager_t<T>::create_tmp_tapes 
 (uptr_itape_t &input_tape, std::unique_ptr<T[]> &tape_data_chunks)
 {
         std::filesystem::create_directory("tmp/");
@@ -150,7 +150,7 @@ inline void drive_t<T>::create_tmp_tapes
 }
 
 template <typename T>
-inline void drive_t<T>::read_sort_write_tmp
+inline void manager_t<T>::read_sort_write_tmp
 (uptr_itape_t &input_tape, std::unique_ptr<T[]> &tape_data_chunks, size_t n_tape,
  size_t n_elems, size_t size)
 {
@@ -168,7 +168,7 @@ inline void drive_t<T>::read_sort_write_tmp
 }
 
 template <typename T>
-inline void drive_t<T>::write_output_tape_no_tmps 
+inline void manager_t<T>::write_output_tape 
 (uptr_itape_t &input_tape, std::unique_ptr<T[]> &tape_data_chunks)
 {
         input_tape->read_next(tape_data_chunks.get(), chunk_n_elems);

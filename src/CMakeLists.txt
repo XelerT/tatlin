@@ -1,5 +1,5 @@
 set(SRC_LIST
-        drive
+        manager
         tape
         utils
         ui

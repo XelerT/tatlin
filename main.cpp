@@ -1,4 +1,4 @@
-#include "drive.hpp"
+#include "manager.hpp"
 #include "utils.hpp"
 #include "cmd_parser.hpp"
 
@@ -12,9 +12,10 @@ int main (int argc, const char *argv[])
 
         try {
                 tape_cnfg_t tape_conf = read_config(parsed_args.conf_path);
-                std::cout << parsed_args.input_file_path << " " << parsed_args.output_file_path<<std::endl;
-                drive_t<int> drive {parsed_args.input_file_path, parsed_args.output_file_path, tape_conf};
-                drive.copy_sort_tape();
+                manager_t<int> manager {parsed_args.input_file_path, 
+                                        parsed_args.output_file_path, 
+                                        tape_conf, parsed_args.clear};
+                manager.copy_sort_tape();
         } catch (std::bad_alloc &ba) {
                 std::cerr << "Can not allocate needed memory.\n"; 
                 return -1;
