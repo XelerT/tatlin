@@ -87,11 +87,17 @@ template <typename T>
 inline void drive_t<T>::merge_tmp_tapes_in_output ()
 {
         uptr_itape_t output {create_tape<T>(config, output_file_path)};
+        std::vector<T> elems (chunk_size);
+        size_t n_loaded_elems = 0;
 
         for (size_t i = 0; i < tape_n_elems; i++) {
                 min_heap_node_t root = min_heap.get_min();
-                // std::cout << root.elem;
-                output->write_next(root.elem);
+                elems[n_loaded_elems] = root.elem;
+                n_loaded_elems++;
+                if (n_loaded_elems == chunk_size) {
+                        output->write_next(elems.data(), n_loaded_elems);
+                        n_loaded_elems = 0;
+                }
 
                 if (root.next_elem_index < tmp_tapes[root.arr_index]->get_size() / sizeof(T)) {
                         tmp_tapes[root.arr_index]->read_next(&root.elem);
@@ -101,6 +107,7 @@ inline void drive_t<T>::merge_tmp_tapes_in_output ()
                 }
                 min_heap.replace_min(root);
         }
+        output->write_next(elems.data(), n_loaded_elems);
 }
 
 template <typename T>
@@ -111,12 +118,9 @@ inline std::unique_ptr<T[]> drive_t<T>::create_chunks ()
                 chunk_size /= 2;
                 tape_data_chunks.reset(new(std::nothrow) T[chunk_size]);
         }
-
-        // std::cout << tape_size << " / " << chunk_size << std::endl; 
         if (!chunk_size)
                 throw std::bad_alloc();
 
-        chunk_size /= 2;
         n_chunks = tape_size / chunk_size;
         if (tape_size > chunk_size * n_chunks)
                 ++n_chunks;
@@ -138,7 +142,8 @@ inline void drive_t<T>::create_tmp_tapes
                 read_sort_write_tmp(input_tape, tape_data_chunks, i, chunk_n_elems, chunk_size);
                 n_remaining_bytes -= chunk_size;
         }
-        read_sort_write_tmp(input_tape, tape_data_chunks, n_chunks - 1, n_remaining_bytes / sizeof(T), n_remaining_bytes);
+        read_sort_write_tmp(input_tape, tape_data_chunks, n_chunks - 1, 
+                            n_remaining_bytes / sizeof(T), n_remaining_bytes);
 
         min_heap.initial_heapify();
 }

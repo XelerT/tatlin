@@ -74,7 +74,7 @@ class tape_t final : public itape_t<T>
 
                 void read_next (T *output, size_t n_elems = 1) override;
                 void read (T *output, size_t addr, size_t n_elems = 1) override;
-                void write_next (const T &elem) override;
+                void write_next (const T *elems, size_t n_elems = 1) override;
                 void write (size_t addr, T &elem) override;
                 void write (size_t addr, const T *elems, size_t n_elems) override;
                 // void dump () const override;
@@ -114,11 +114,11 @@ inline void tape_t<T>::read (T *output, size_t addr, size_t n_elems)
 }
 
 template <typename T>
-inline void tape_t<T>::write_next (const T &elem)
+inline void tape_t<T>::write_next (const T *elems, size_t n_elems)
 {        
         std::this_thread::sleep_for(config.get_write_latency());
         
-        tape.write(reinterpret_cast<const char*>(&elem), sizeof(T));
+        tape.write(reinterpret_cast<const char*>(elems), sizeof(T) * n_elems);
 }
 
 template <typename T>
