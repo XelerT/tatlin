@@ -2,6 +2,7 @@ set(SRC_LIST
         drive
         tape
         utils
+        ui
 )
 
 foreach(SRC ${SRC_LIST})

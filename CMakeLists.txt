@@ -4,10 +4,17 @@ project(tatlin_tape)
 # Build flags
 include(cmake/build_flags.cmake)
 
+# target_link_options(${PROJECT_NAME} PUBLIC "")
+
 # Build mode
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
         set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose Release or Debug" FORCE)
 endif()
+
+# Required libs
+
+find_package(Boost 1.40 COMPONENTS program_options REQUIRED)
+include_directories(${Boost_INCLUDE_DIRS})
 
 # collect srcs
 
@@ -38,7 +45,7 @@ endforeach()
 
 # Create main.cpp
 
-add_executable(${PROJECT_NAME} main.cpp ${FLEX_scanner_OUTPUTS} ${BISON_parser_OUTPUTS})
+add_executable(${PROJECT_NAME} main.cpp)
 
 target_compile_options(${PROJECT_NAME} PUBLIC "$<$<CONFIG:Debug>:${DEBUG_BUILD}>")
 target_link_options(${PROJECT_NAME}    PUBLIC "$<$<CONFIG:Debug>:${DEBUG_LINK}>")
@@ -49,6 +56,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/in
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
+target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
 
 install(TARGETS ${PROJECT_NAME})
 

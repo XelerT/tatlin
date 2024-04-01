@@ -92,12 +92,13 @@ inline void drive_t<T>::merge_tmp_tapes_in_output ()
 
         for (size_t i = 0; i < tape_n_elems; i++) {
                 min_heap_node_t root = min_heap.get_min();
-                elems[n_loaded_elems] = root.elem;
-                n_loaded_elems++;
-                if (n_loaded_elems == chunk_size) {
-                        output->write_next(elems.data(), n_loaded_elems);
-                        n_loaded_elems = 0;
-                }
+                // elems[n_loaded_elems] = root.elem;
+                // n_loaded_elems++;
+                // if (n_loaded_elems == chunk_size) {
+                //         output->write_next(elems.data(), n_loaded_elems);
+                //         n_loaded_elems = 0;
+                // }
+                output->write_next(&root.elem);
 
                 if (root.next_elem_index < tmp_tapes[root.arr_index]->get_size() / sizeof(T)) {
                         tmp_tapes[root.arr_index]->read_next(&root.elem);
@@ -163,7 +164,7 @@ inline void drive_t<T>::read_sort_write_tmp
 
         tmp->write(0, tape_data_chunks.get(), n_elems);
         tmp_tapes.push_back(tmp);
-        tmp->move_head2(0);
+        tmp->rewind();
 }
 
 template <typename T>

@@ -2,6 +2,8 @@
 
 #include <string>
 
+#include "tape/itape.hpp"
+
 struct CONSOLE_CLRS
 {
         static constexpr std::string_view RED     = "\033[91m";
@@ -11,8 +13,4 @@ struct CONSOLE_CLRS
         static constexpr std::string_view DEFAULT = "\033[0m";
 };
 
-template <typename Typeid, typename T>
-bool isa (T &lhs)
-{
-        return typeid(lhs) == typeid(Typeid);
-}
+tatlin_tape::tape_cnfg_t read_config (const std::string &conf_path);

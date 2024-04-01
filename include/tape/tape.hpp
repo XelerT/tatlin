@@ -82,11 +82,11 @@ class tape_t final : public itape_t<T>
                 std::string get_name () override { return name; }
                 size_t get_size () const override { return size; }
                 void move_head2 (size_t addr) override;
+                void rewind () { std::this_thread::sleep_for(config.get_rewind_dur()); tape.seekg(0); }
 
                 ~tape_t () { rewind(); tape.close(); }
 
         private:
-                void rewind () { std::this_thread::sleep_for(config.get_rewind_dur()); tape.seekg(0); }
                 void check_addr (size_t addr);
 };
 
