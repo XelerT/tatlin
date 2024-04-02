@@ -1,6 +1,6 @@
 # Tatlin Tape
 
-External sorting project, simulating work of magnet tapes using files.
+External sorting project, simulating work of magnet tapes using files. App can sort large file (2+ Gb), using dynamic memory that can be allocated for this program. If file that has to be sorted is larger than allocated memory, temporary tapes will be used and than they will be merged in output file, using min-heap algorithm.
 
 ## Required programs:
 
@@ -68,3 +68,25 @@ You can use my generator to create some random files with 4 byte integers. From 
 In directory ``tests/e2e/data`` must be files with data and answer data. Then you can run from ``build/`` directory e2e tests:
 
         $ python ../tests/e2e/e2e_tests.py
+
+### Test results
+
+My results for sorting without using temporary tapes are represented on this plot, that situation is possible when application can allocate enough memory to store input tape:
+
+![plot](imgs/gr.png)
+
+Otherwise application has to use temporary tapes, which represented by ordinary files, therefore I have significant decrease in run time because of merging process, which uses all temporary files and min-heap in a time. Results for **1 Gb** file with two temporary tapes:
+
+        552 seconds time elapsed
+
+        257 seconds user time
+        290 seconds sys time
+
+In comparison with same file to sort, but without temporary tapes (Results: 30s - wall time, 28s - user time, 1s - system time) we have decrease in 18.4 times.
+
+**2 Gb** file stats:
+
+        1238 seconds time elapsed
+
+        567 seconds user time
+        658 seconds sys time
