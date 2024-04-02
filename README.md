@@ -1,10 +1,10 @@
 # Tatlin Tape
 
-External sorting project, simulating work of magnet tapes using files. App can sort large file (2+ Gb), using dynamic memory that can be allocated for this program. If file that has to be sorted is larger than allocated memory, temporary tapes will be used and than they will be merged in output file, using min-heap algorithm.
+External sorting project, simulating work of magnet tapes using files. App can sort large file (2+ Gb), using dynamic memory that can be allocated for this program. If file that have to be sorted is larger than allocated memory, temporary tapes will be used and than they will be merged in output file, using min-heap algorithm.
 
-## Required programs:
+## Prerequisite:
 
-- Cmake version  3.13.4
+- Cmake 3.13.4
 - Boost 1.40
 
 
@@ -12,11 +12,11 @@ External sorting project, simulating work of magnet tapes using files. App can s
 
         $ git clone https://github.com/XelerT/tatlin.git
         $ cd tatlin
-        $ cmake -S .. -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build
+        $ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build
 
 To build unit tests use:
 
-        $ cmake -S .. -B build -DCMAKE_BUILD_TYPE=Release -DUNITESTS=ON && cmake --build build
+        $ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DUNITESTS=ON && cmake --build build
 
 ## Run
 
@@ -75,7 +75,7 @@ My results for sorting without using temporary tapes are represented on this plo
 
 ![plot](imgs/gr.png)
 
-Otherwise application has to use temporary tapes, which represented by ordinary files, therefore I have significant decrease in run time because of merging process, which uses all temporary files and min-heap in a time. Results for **1 Gb** file with two temporary tapes:
+Otherwise application have to use temporary tapes, which represented by ordinary files, therefore I have significant decrease in run time because of merging process, which uses all temporary files and min-heap in a time. Results for **1 Gb** file with two temporary tapes:
 
         552 seconds time elapsed
 
