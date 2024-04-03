@@ -42,6 +42,7 @@ namespace tatlin_tape
                         virtual void write (size_t addr, const T *elems, size_t n_elems) = 0;
 
                         virtual size_t get_size () const = 0;
+                        virtual size_t get_n_elems () const = 0;
                         virtual std::string get_name () = 0;
                         virtual void move_head2 (size_t addr) = 0;
                         virtual void rewind () = 0;

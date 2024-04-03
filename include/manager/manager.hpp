@@ -99,7 +99,7 @@ inline void manager_t<T>::merge_tmp_tapes_in_output ()
                 min_heap_node_t root = min_heap.get_min();
                 output->write_next(&root.elem);
 
-                if (root.next_elem_index < tmp_tapes[root.arr_index]->get_size() / sizeof(T)) {
+                if (root.next_elem_index < tmp_tapes[root.arr_index]->get_n_elems()) {
                         tmp_tapes[root.arr_index]->read_next(&root.elem);
                         root.next_elem_index++;
                 } else {
@@ -125,7 +125,7 @@ inline std::unique_ptr<T[]> manager_t<T>::create_chunks ()
         n_chunks = tape_size / chunk_size;
         if (tape_size > chunk_size * n_chunks)
                 ++n_chunks;
-                        
+
         tape_n_elems  = tape_size / sizeof(T);
         chunk_n_elems = chunk_size / sizeof(T);
 
@@ -165,6 +165,7 @@ inline void manager_t<T>::read_sort_write_tmp
         tmp->write(0, tape_data_chunks.get(), n_elems);
         tmp_tapes.push_back(tmp);
         tmp->rewind();
+        tmp->move_head2(sizeof(T));
 }
 
 template <typename T>

@@ -21,6 +21,7 @@ class tape_t final : public itape_t<T>
                 std::fstream tape {};
                 size_t head_cur_addr = 0;
                 size_t size = 0;
+                size_t n_elems = 0;
 
         public:
                 tape_t () = default;
@@ -33,6 +34,7 @@ class tape_t final : public itape_t<T>
                         tape.open(file_name, std::fstream::in | std::fstream::out);
 
                         size = std::filesystem::file_size(file_name);
+                        n_elems = size / sizeof(T);
                 }
                 tape_t (const tape_cnfg_t &config_, const std::string &file_name):
                         config(config_),
@@ -44,6 +46,7 @@ class tape_t final : public itape_t<T>
                         }
                         tape.open(file_name, std::fstream::in | std::fstream::out);
                         size = std::filesystem::file_size(file_name);                        
+                        n_elems = size / sizeof(T);
                 }
                 tape_t (const tape_cnfg_t &config_, const std::string &file_name, 
                         size_t size_, bool trunc):
@@ -51,6 +54,8 @@ class tape_t final : public itape_t<T>
                         name(file_name),
                         size(size_)
                 {
+                        n_elems = size / sizeof(T);
+
                         if (!std::filesystem::exists(file_name)) {
                                 tape.open(file_name, std::fstream::out);
                                 tape.close();
@@ -72,6 +77,7 @@ class tape_t final : public itape_t<T>
 
                 std::string get_name () noexcept override  { return name; }
                 size_t get_size () const noexcept override { return size; }
+                size_t get_n_elems () const noexcept override { return n_elems; }
                 void move_head2 (size_t addr) override;
                 void rewind () { std::this_thread::sleep_for(config.get_rewind_dur()); tape.seekg(0); }
                 
