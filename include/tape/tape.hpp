@@ -64,14 +64,6 @@ class tape_t final : public itape_t<T>
                                                      std::fstream::out);
                 }
 
-                tape_t (const tape_t &tape_):
-                        config(tape_.config),
-                        name(tape_.name),
-                        size(tape_.size)
-                {
-                        tape.open(name, std::fstream::in | std::fstream::out);
-                }
-
                 void read_next (T *output, size_t n_elems = 1) override;
                 void read (T *output, size_t addr, size_t n_elems = 1) override;
                 void write_next (const T *elems, size_t n_elems = 1) override;
@@ -82,6 +74,24 @@ class tape_t final : public itape_t<T>
                 size_t get_size () const noexcept override { return size; }
                 void move_head2 (size_t addr) override;
                 void rewind () { std::this_thread::sleep_for(config.get_rewind_dur()); tape.seekg(0); }
+                
+                tape_t (tape_t &tape_) = delete;
+                tape_t& operator=(tape_t &tape_) = delete;
+
+                tape_t (tape_t &&tape_):
+                        config(std::move(tape_.config)),
+                        name(std::move(tape_.name)),
+                        tape(std::move(tape_.tape)),
+                        head_cur_addr(tape_.head_cur_addr),
+                        size(tape_.size) {}
+                tape_t& operator=(tape_t &&tape_)
+                {
+                        std::swap(config, tape_.config);
+                        std::swap(name, tape_.name);
+                        std::swap(tape, tape_.tape);
+                        std::swap(head_cur_addr, tape_.head_cur_addr);
+                        std::swap(size, tape_.size);
+                }
 
                 ~tape_t () { rewind(); tape.close(); }
 
