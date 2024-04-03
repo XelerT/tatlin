@@ -4,3 +4,4 @@
 #include <gmock/gmock.h>
 
 #include "utils/minheap.hpp"
+#include "tape/tape.hpp"
