@@ -1,3 +1,5 @@
+#pragma once
+
 #include "itape.hpp"
 #include "tape.hpp"
 

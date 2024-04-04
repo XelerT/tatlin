@@ -69,11 +69,11 @@ class tape_t final : public itape_t<T>
                                                      std::fstream::out);
                 }
 
-                void read_next (T *output, size_t n_elems = 1) override;
-                void read (T *output, size_t addr, size_t n_elems = 1) override;
-                void write_next (const T *elems, size_t n_elems = 1) override;
+                void read_next (T *output, size_t n_elems_ = 1) override;
+                void read (T *output, size_t addr, size_t n_elems_ = 1) override;
+                void write_next (const T *elems, size_t n_elems_ = 1) override;
                 void write (size_t addr, T &elem) override;
-                void write (size_t addr, const T *elems, size_t n_elems) override;
+                void write (size_t addr, const T *elems, size_t n_elems_) override;
 
                 std::string get_name () noexcept override  { return name; }
                 size_t get_size () const noexcept override { return size; }
@@ -89,7 +89,7 @@ class tape_t final : public itape_t<T>
                         name(std::move(tape_.name)),
                         tape(std::move(tape_.tape)),
                         head_cur_addr(tape_.head_cur_addr),
-                        size(tape_.size) {}
+                        size(tape_.size), n_elems(tape_.n_elems) {}
                 tape_t& operator=(tape_t &&tape_)
                 {
                         std::swap(config, tape_.config);
@@ -97,6 +97,7 @@ class tape_t final : public itape_t<T>
                         std::swap(tape, tape_.tape);
                         std::swap(head_cur_addr, tape_.head_cur_addr);
                         std::swap(size, tape_.size);
+                        std::swap(n_elems, tape_.n_elems);
                 }
 
                 ~tape_t () { rewind(); tape.close(); }
@@ -110,30 +111,30 @@ class tape_t final : public itape_t<T>
 //---------------------------------------------------~~~~~~Public~~~~~~--------------------------------------------------------------------
 
 template <typename T>
-inline void tape_t<T>::read_next (T *output, size_t n_elems)
+inline void tape_t<T>::read_next (T *output, size_t n_elems_)
 {
         std::this_thread::sleep_for(config.get_read_latency());
         
-        tape.read(reinterpret_cast<char*>(output), sizeof(T) * n_elems);
-        move_head2(head_cur_addr + sizeof(T) * n_elems);
+        tape.read(reinterpret_cast<char*>(output), sizeof(T) * n_elems_);
+        move_head2(head_cur_addr + sizeof(T) * n_elems_);
 }
 
 template <typename T>
-inline void tape_t<T>::read (T *output, size_t addr, size_t n_elems)
+inline void tape_t<T>::read (T *output, size_t addr, size_t n_elems_)
 {
         check_addr(addr);
         
         move_head2(addr);
         std::this_thread::sleep_for(config.get_read_latency());
-        tape.read(reinterpret_cast<char*>(output), sizeof(T) * n_elems);
+        tape.read(reinterpret_cast<char*>(output), sizeof(T) * n_elems_);
 }
 
 template <typename T>
-inline void tape_t<T>::write_next (const T *elems, size_t n_elems)
+inline void tape_t<T>::write_next (const T *elems, size_t n_elems_)
 {        
         std::this_thread::sleep_for(config.get_write_latency());
         
-        tape.write(reinterpret_cast<const char*>(elems), sizeof(T) * n_elems);
+        tape.write(reinterpret_cast<const char*>(elems), sizeof(T) * n_elems_);
 }
 
 template <typename T>
@@ -148,14 +149,14 @@ inline void tape_t<T>::write (size_t addr, T &elem)
 }
 
 template <typename T>
-inline void tape_t<T>::write (size_t addr, const T *elem, size_t n_elems)
+inline void tape_t<T>::write (size_t addr, const T *elem, size_t n_elems_)
 {
         check_addr(addr);
 
         move_head2(addr);
         std::this_thread::sleep_for(config.get_write_latency());
         
-        tape.write(reinterpret_cast<const char*>(elem), sizeof(T) * n_elems);
+        tape.write(reinterpret_cast<const char*>(elem), sizeof(T) * n_elems_);
 }
 
 template <typename T>

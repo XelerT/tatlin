@@ -47,7 +47,6 @@ namespace tatlin_tape
                         virtual void move_head2 (size_t addr) = 0;
                         virtual void rewind () = 0;
 
-
                         virtual ~itape_t () {}
         };
 }

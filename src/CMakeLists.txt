@@ -3,6 +3,7 @@ set(SRC_LIST
         tape
         utils
         ui
+        sorter
 )
 
 foreach(SRC ${SRC_LIST})
